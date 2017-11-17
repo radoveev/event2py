@@ -392,7 +392,7 @@ class ShowRandomImageAction(VisualEventAction):
         if xmlelem.tag == "Images":
             for imgelem in xmlelem.findall("FilteredImage"):
                 imgpath = cast_child_text(imgelem, "ImagePath")
-                self.images.add(Path(imgpath))
+                self.images.add("/".join(Path(imgpath).parts))
         else:
             super().parse_child(xmlelem)
 
