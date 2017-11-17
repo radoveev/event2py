@@ -226,7 +226,7 @@ class StartAction(VisualEventAction):
     def to_lines(self, actions, variables, data):
         lines = super().to_lines(actions, variables)
         lines.insert(0, '# import game interface', 0)
-        lines.insert(1, 'import GameInterface as game', 0)
+        lines.insert(1, 'from events import GameInterface', 0)
         lines.insert(2, '', 0)
         lines.insert(3, '', 0)
         lines.append('def try_():')
@@ -237,6 +237,7 @@ class StartAction(VisualEventAction):
         lines.extend(self.outlink_to_lines(actions, variables, "Execute"))
         lines.close_function()
         lines.append('# define variables')
+        lines.append('game = GameInterface()')
         lines.append('eventname = "%s"' % data["eventname"])
         lines.append('')
         return lines
