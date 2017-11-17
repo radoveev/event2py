@@ -85,6 +85,7 @@ class VESeqObjectsModel(XmlModel):
         assert act.actid not in self.idmap
         self.idmap[act.actid] = act
 
+
 # TODO: implement randomization, e.g.
 #   <MinRandom>4</MinRandom>
 #   <IsRandom>true</IsRandom>
@@ -200,10 +201,11 @@ class VisualEventAction(XmlModel):
         try:
             return self.variable_links[name]
         except KeyError as keyerr:
-            if default is not None:
-                return default
-        valerr = ValueError("No variable link named '%s' in %s" % (name, self))
-        raise valerr from keyerr
+            if default is None:
+                valerr = ValueError("No variable link named '%s' in %s"
+                                    % (name, self))
+                raise valerr from keyerr
+            return default
 
     def get_out_link(self, name, default=None):
         try:
@@ -214,6 +216,7 @@ class VisualEventAction(XmlModel):
                                     % (name, self))
                 raise valerr from keyerr
             return default
+
 
 class StartAction(VisualEventAction):
 
@@ -234,7 +237,8 @@ class StartAction(VisualEventAction):
         lines.extend(self.outlink_to_lines(actions, variables, "Execute"))
         lines.close_function()
         lines.append('# define variables')
-        lines.append('eventname = %s' % data["eventname"])
+        lines.append('eventname = "%s"' % data["eventname"])
+        lines.append('')
         return lines
 
 
@@ -260,7 +264,6 @@ class GetPersonListAction(VisualEventAction):
         lines = super().to_lines(actions, variables)
         varlink = self.get_var_link("List")
         varid = varlink["id"]
-        var = variables.get_var(varid)
         varname = 'person_list_%s' % varid
         variables.update_var(varid, "pyname", varname)
         lines.append('%s = game.get_person_list("%s")'
@@ -477,7 +480,8 @@ class MinObjListElementsAction(VisualEventAction):
         lines = super().to_lines(actions, variables)
         listvar = variables.get_var(self.get_var_link("List")["id"])
         minvar = variables.get_var(self.get_var_link("Min")["id"])
-        lines.append('if len(%s) < %s:' % (listvar["pyname"], minvar["content"]))
+        lines.append('if len(%s) < %s:'
+                     % (listvar["pyname"], minvar["content"]))
         lines.extend(self.outlink_to_lines(actions, variables, "<"))
         lines.indent_level -= 1
         lines.extend(self.outlink_to_lines(actions, variables, ">="))
