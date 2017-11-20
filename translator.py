@@ -201,7 +201,7 @@ class VisualEventAction(XmlModel):
 
     def outlink_to_lines(self, actions, variables, name):
         lines = ScriptLines()
-        outlink = self.get_out_link(name)
+        outlink = self.get_out_link(name, {"id": None})
         if outlink["id"] is None:
             lines.append("return")
         else:
@@ -218,6 +218,9 @@ class VisualEventAction(XmlModel):
                                     % (name, self))
                 raise valerr from keyerr
             return default
+            
+    def get_var(self, variables, name):
+        return variables.get_var(self.get_var_link(name)["id"])
 
     def get_out_link(self, name, default=None):
         try:
@@ -532,6 +535,23 @@ class SetScheduleAction(VisualEventAction):
         lines = super().to_lines(actions, variables)
         var = variables.get_var(self.get_var_link("Days")["id"])
         lines.append('game.set_schedule(eventname, days=%s)' % var["content"])
+        return lines
+
+        
+class GetBitAction(VisualEventAction):
+    
+    def __init__(self):
+        super().__init__()
+
+    def to_lines(self, actions, variables):
+        lines = super().to_lines(actions, variables)
+        var = self.get_var(variables, "Variable")["content"]
+        pos = self.get_var(variables, "Position")["content"]
+        lines.append('bit = game.get_bit({}, {})'.format(var, pos))
+        lines.append('if bit is 0:')
+        lines.extend(self.outlink_to_lines(actions, variables, 0))
+        lines.indent_level -= 1
+        lines.extend(self.outlink_to_lines(actions, variables, 1))
         return lines
 
 
