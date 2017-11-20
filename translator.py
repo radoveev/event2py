@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Import libraries
 # --------------------------------------------------------------------------- #
 import logging
+import os.path
 from collections import OrderedDict
 from pathlib import Path
 from lxml import etree
@@ -102,13 +103,21 @@ class VESeqVarsModel(XmlModel):
 
     def parse_child(self, xmlelem):
         varid = cast_child_text(xmlelem, "ID")
-        comment = cast_child_text(xmlelem, "Comment", "nocomment")
+        # parse type of variable
         vartype = xmlelem.tag.replace("SeqVar_", "")
         varmap = {"type": vartype}
+        # parse comment
+        comment = cast_child_text(xmlelem, "Comment", "nocomment")
         if comment != "nocomment":
             varmap["comment"] = comment
+        # parse content of variable
         if vartype == "ObjectList":
             data = []
+        elif vartype == "Reference":
+            refid = cast_child_text(xmlelem, "RefID")
+            refpath = cast_child_text(xmlelem, "RefFileName")
+            refpath = "/".join(refpath.parts)
+            data = 'Ref({refid}, "{refpath}")'.format_map(locals())
         else:
             tagmap = {"String": "Str",
                       "Double": "Dbl"}
@@ -228,8 +237,8 @@ class StartAction(VisualEventAction):
 
     def to_lines(self, actions, variables, data):
         lines = super().to_lines(actions, variables)
-        lines.insert(0, '# import game interface', 0)
-        lines.insert(1, 'from events import GameInterface', 0)
+        lines.insert(0, 'import events', 0)
+        lines.insert(1, 'import events.Reference as Ref', 0)
         lines.insert(2, '', 0)
         lines.insert(3, '', 0)
         lines.append('def try_():')
@@ -240,7 +249,7 @@ class StartAction(VisualEventAction):
         lines.extend(self.outlink_to_lines(actions, variables, "Execute"))
         lines.close_function()
         lines.append('# define variables')
-        lines.append('game = GameInterface()')
+        lines.append('game = events.GameInterface()')
         lines.append('eventname = "%s"' % data["eventname"])
         lines.append('')
         return lines
@@ -670,6 +679,10 @@ def cast_xml_type(text):
         return True
     if text == "false":
         return False
+    # if the platform-dependent path separator is 
+    # in the text we assume the text is a path
+    if os.path.sep in text:
+        return Path(text)
     # assume its just a string
     return text
 
