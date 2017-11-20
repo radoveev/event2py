@@ -101,9 +101,12 @@ class VESeqVarsModel(XmlModel):
         self.idmap[varid][key] = value
 
     def parse_child(self, xmlelem):
-        varid = cast_text(xmlelem.find("ID"))
+        varid = cast_child_text(xmlelem, "ID")
+        comment = cast_child_text(xmlelem, "Comment", "nocomment")
         vartype = xmlelem.tag.replace("SeqVar_", "")
         varmap = {"type": vartype}
+        if comment != "nocomment":
+            varmap["comment"] = comment
         if vartype == "ObjectList":
             data = []
         else:
