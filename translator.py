@@ -388,7 +388,7 @@ class IsScheduledForTodayAction(VisualEventAction):
 
     def to_lines(self, actions, variables):
         lines = super().to_lines(actions, variables)
-        lines.append('if game.is_scheduled_for_today(eventname) is False:')
+        lines.append('if game.is_scheduled_for_today(self.name) is False:')
         lines.extend(self.outlink_to_lines(actions, variables, "False"))
         lines.indent_level -= 1
         lines.extend(self.outlink_to_lines(actions, variables, "True"))
@@ -545,7 +545,7 @@ class SetScheduleAction(VisualEventAction):
     def to_lines(self, actions, variables):
         lines = super().to_lines(actions, variables)
         var = variables.get_var(self.get_var_link("Days")["id"])
-        lines.append('game.set_schedule(eventname, days=%s)' % var["content"])
+        lines.append('game.set_schedule(self.name, days=%s)' % var["content"])
         return lines
 
         
