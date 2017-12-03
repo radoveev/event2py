@@ -244,16 +244,27 @@ class StartAction(VisualEventAction):
         lines.insert(1, 'import events.Reference as Ref', 0)
         lines.insert(2, '', 0)
         lines.insert(3, '', 0)
+        lines.append('class %s(events.Event):' % data["eventname"])
+        lines.append('"""This event script was generated with event2py.')
+        lines.append('')
+        lines.append('It is based on the visual event %s.ve.xml from HHS+.' 
+                     % data["eventname"])
+        lines.append('"""')
+        lines.append('')
+        lines.append('def __init__(self):')
+        lines.append('super().__init__()')
+        lines.close_method()
+        
         lines.append('def try_():')
         lines.extend(self.outlink_to_lines(actions, variables, "Try"))
-        lines.close_function()
+        lines.close_method()
 
         lines.append('def execute():')
         lines.extend(self.outlink_to_lines(actions, variables, "Execute"))
-        lines.close_function()
+        lines.close_method()
+        lines.close_class()
         lines.append('# define variables')
         lines.append('game = events.GameInterface()')
-        lines.append('eventname = "%s"' % data["eventname"])
         lines.append('')
         return lines
 
