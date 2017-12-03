@@ -640,13 +640,27 @@ class ScriptLines(object):
         """Inserts the line at the specified line index."""
         self.lines.insert(idx, self.indent_sep * indent_level + line.rstrip())
 
-    def close_method(self):
+    def close_block(self, empty_lines=1):
         self.indent_level -= 1
-        self.append('')
+        # add the right amount of empty lines
+        if empty_lines < 1:
+            return
+        idx = -1
+        existing_empty = 0
+        while self.lines[idx] == '':
+            existing_empty += 1
+            idx -= 1
+        if existing_empty == empty_lines:
+            return
+        elif existing_empty < empty_lines:
+            for _ in range(empty_lines - existing_empty):
+                self.append('')
+        
+    def close_method(self):
+        self.close_block(1)
 
     def close_function(self):
-        self.close_method()
-        self.append('')
+        self.close_block(2)
     close_class = close_function
 
 
