@@ -623,7 +623,10 @@ class ScriptLines(object):
 
     def append(self, line):
         line = line.rstrip()
-        self.lines.append(self.indent + line)
+        if line == '':
+            self.lines.append(line)
+        else:
+            self.lines.append(self.indent + line)
         if "#" in line:
             line, comment = line.split("#", 1)
         if line.rstrip().endswith(":"):
